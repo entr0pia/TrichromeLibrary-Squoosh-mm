@@ -8,7 +8,12 @@ MODDIR=${0%/*}
 
 # This script will be executed in late_start service mode
 sleep 15
-trib_vers=$(find /data/app -name  'com.google.android.trichromelibrary*' | grep -oE '[0-9]{9}' | sort -n | sed '$d')
+
+webview_stat=$(dumpsys webviewupdate)
+current_ver=$(echo "$webview_stat" | grep 'Current WebView package' | grep -oE '[0-9\.]{2,}')
+current_code=$(echo "$webview_stat" | grep "$current_ver" | grep -oE '[0-9]{9}')
+
+trib_vers=$(find /data/app -name  'com.google.android.trichromelibrary*' | grep -oE '(\.(beta|dev|canary))?_[0-9]{9}' | sed "/$current_code/d")
 for version in $trib_vers; do
-    pm uninstall com.google.android.trichromelibrary_$version
+    pm uninstall com.google.android.trichromelibrary$version
 done
